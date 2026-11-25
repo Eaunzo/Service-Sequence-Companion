@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PARADIGMA — Service Sequence Companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+:root{--or:#f26822;--ord:#c24b0b;--te:#1a7b88;--ted:#0c353b;--bg:#082327;--sand:#fcfaf6;--sur:#f5f1ea;--bd:#e6ded4}
+html,body{overflow-x:hidden}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--sand);color:#1d2b2e}
+.serif{font-family:'Playfair Display',Georgia,serif}
+.card{background:#fff;border:1px solid var(--bd);border-radius:20px;box-shadow:0 2px 10px rgba(12,53,59,.06)}
+.btn{min-height:44px;padding:0 18px;border-radius:12px;font-weight:600;transition:.15s;border:1px solid var(--bd);background:#fff}
+.btn:hover:not(:disabled){transform:translateY(-1px);border-color:var(--te)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-or{background:var(--or);color:#fff;border-color:var(--or)}.btn-or:hover:not(:disabled){background:var(--ord)}
+.btn-te{background:var(--ted);color:#fff;border-color:var(--ted)}
+:focus-visible{outline:3px solid var(--or);outline-offset:2px}
+.tab{min-height:44px;padding:0 16px;border-radius:12px;font-weight:600;background:var(--sur);color:#3d4f52;white-space:nowrap}
+.tab:hover{background:var(--bd)}.tab[aria-selected=true]{background:var(--ted);color:#fff}
+.panel{animation:fade .25s ease}@keyframes fade{from{opacity:.0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.canvas{background:radial-gradient(circle at 20% 10%,#14515a 0%,var(--ted) 45%,var(--bg) 100%);color:#fff;border-radius:24px}
+.opt{display:block;width:100%;text-align:left;min-height:44px;padding:10px 14px;border:1px solid var(--bd);border-radius:12px;background:#fff;margin-top:8px}
+.opt:hover:not(:disabled){border-color:var(--te);background:var(--sur)}
+.ok{border-color:#1a7b88!important;background:#e3f2f4!important}.bad{border-color:var(--ord)!important;background:#fdece2!important}
+.bar{height:12px;background:var(--bd);border-radius:99px;overflow:hidden}.bar>i{display:block;height:100%;background:var(--te);transition:width .5s}
+.seq{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--bd);border-radius:12px;background:#fff;margin-top:8px;cursor:grab}
+.seq.over{border-color:var(--or)}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ted);color:#fff;padding:12px 20px;border-radius:12px;opacity:0;pointer-events:none;transition:.3s;z-index:90;max-width:90vw}
+#toast.show{opacity:1}
+.modal{position:fixed;inset:0;background:rgba(8,35,39,.7);display:none;align-items:center;justify-content:center;padding:16px;z-index:80}
+.modal.open{display:flex}.modal>div{animation:fade .2s ease}
+.strip{overflow-x:auto}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b" style="border-color:var(--bd);padding-top:env(safe-area-inset-top)">
+ <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+  <div><div class="serif text-2xl font-bold" style="color:var(--ted)">PARADIGMA</div>
+   <div class="text-xs" style="color:var(--te)">Customer Experience Solutions</div></div>
+  <div class="hidden md:block text-sm text-center"><b>F&amp;B Excellence • Service Execution &amp; Table Care</b><br><span class="text-xs text-gray-600">Self-Paced Learning &amp; Simulation Companion</span></div>
+  <div class="flex items-center gap-3 text-xs">
+   <span>Slide <b id="hSlide">1</b>/16</span>
+   <span class="px-2 py-1 rounded-full" style="background:var(--sur)">Quiz <b id="hQuiz">0/12</b></span>
+   <span id="saveStatus" role="status" style="color:var(--te)">Auto-saved</span>
+   <a href="https://paraintl.com" class="underline" rel="noopener" target="_blank">paraintl.com</a>
+  </div>
+ </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 pb-16">
+ <section class="py-8">
+  <p class="text-sm font-semibold" style="color:var(--te)">Self-Paced Floor Training • Interactive Companion</p>
+  <h1 class="serif text-4xl md:text-6xl font-bold mt-2" style="color:var(--ted)">Master the Sequence.<br><em style="color:var(--or)">Deliver Guest Delight.</em></h1>
+  <p class="mt-4 max-w-2xl text-gray-700">Follow the presentation slides, test your comprehension with instant mini quizzes, and hone your operational instincts in the interactive practice lab.</p>
+  <div class="mt-5 flex flex-wrap gap-3">
+   <button class="btn btn-or" onclick="switchTab('quiz')">Quizzes</button>
+   <button class="btn text-sm text-gray-600" onclick="promptManagerReset()">Manager Reset</button>
+  </div>
+ </section>
+
+ <nav class="strip flex gap-2 pb-3" role="tablist" aria-label="Training sections" id="tabs"></nav>
+ <div id="view" class="mt-3"></div>
+</main>
+
+<div id="toast" role="status" aria-live="polite"></div>
+<div class="modal" id="infoModal" role="dialog" aria-modal="true" aria-labelledby="imTitle"><div class="card p-6 max-w-md w-full">
+ <h2 id="imTitle" class="serif text-2xl font-bold"></h2><div id="imBody" class="mt-3 text-gray-700"></div>
+ <button class="btn btn-te mt-5" onclick="closeModal()">Close</button></div></div>
+<div class="modal" id="mgrModal" role="dialog" aria-modal="true" aria-labelledby="mmTitle"><div class="card p-6 max-w-md w-full">
+ <h2 id="mmTitle" class="serif text-2xl font-bold">Manager Reset</h2>
+ <p class="mt-3 text-sm text-gray-700">This permanently clears all participant data stored on this device: quizzes, simulation, practice labs, action plan and participant details.</p>
+ <label for="mgrPass" class="block mt-4 text-sm font-semibold">Manager passcode</label>
+ <input id="mgrPass" type="password" autocomplete="off" class="w-full mt-1 p-3 border rounded-xl" style="border-color:var(--bd)">
+ <p id="mgrErr" class="text-sm mt-2" style="color:var(--ord)" role="alert"></p>
+ <p class="text-xs text-gray-500 mt-2">Demo convenience gate only. Client-side code cannot secure a passcode.</p>
+ <div class="mt-4 flex gap-2"><button class="btn btn-or" onclick="verifyAndExecuteManagerReset()">Reset data</button><button class="btn" onclick="closeManagerModal()">Cancel</button></div></div></div>
+
+<script>
+/* ===== 1. CONFIGURATION ===== */
+const CONFIG={storageKey:'paradigma_ssc_v1',managerPasscode:'paradigma-demo' /* DEMO ONLY — change per deployment; not real security */,totalSlides:16,
+ submitUrl:'https://script.google.com/macros/s/AKfycbwbS1560CeCrvswDpYBx4HTLQzNElUil4vePT4rEH_nw2JuNN7U_KFvrhE9q0Lr3Yp6VQ/exec' /* Google Apps Script web app URL. Empty = local-only mode. */,
+ submitToken:'change-me' /* Must match TOKEN in Code.gs (default shown). Light spam filter only, not security. */};
+/* To use a backend, replace submitToServer() with a fetch() call. */
+
+/* ===== 2. STATE ===== */
+const freshState=()=>({currentSlide:1,tab:'present',follow:true,quizAnswers:{},quizScores:{},
+ simulation:{currentStage:0,completedStages:[],guestDelight:100,choices:{},maxSeen:0},
+ phrasing:{completed:[],picks:{}},sequence:{order:[],completed:false,checked:null},
+ participant:{name:'',outlet:'',actionPlan:''},submitted:null});
+let appState=freshState();
+
+/* ===== 3. PRESENTATION DATA ===== */
+const steps=(c,t,s,items,extra)=>Object.assign({c,t,s,items},extra||{});
+const slideDeck=[
+ {c:'Welcome',b:'Intro',t:'The Service Sequence',s:'Eleven standards. Four phases. One guest experience.',quote:'Great service is a sequence performed with warmth, every time.',pillars:['Consistency','Accuracy','Warmth'],a:{label:'See the roadmap',go:2}},
+ {c:'Roadmap',b:'Overview',t:'Four Phases, Eleven Standards',s:'Know where every moment of the table journey sits.',roadmap:['Phase 1 · Arrival & Order Taking (Steps 1–3)','Phase 2 · Delivery & Food Service (Steps 4–6)','Phase 3 · Table Maintenance & Setting (Steps 7–8)','Phase 4 · Settlement & Farewell (Steps 9–11)'],a:{label:'Start Phase 1',go:3}},
+ {c:'Phase 1 · Arrival & Order Taking',b:'Step 1',t:'Greeting & Seating',s:'The first 30 seconds set the tone.',items:['Warm welcome; acknowledge arriving guests within 30 seconds','Genuine smile and eye contact','Confirm reservations; handle walk-ins hospitably','Assist with seating and personal belongings']},
+ {c:'Phase 1 · Arrival & Order Taking',b:'Step 2',t:'Menu & Water Service',s:'Make guests comfortable straight away.',items:['Present open menus from the right','Offer and pour fresh water immediately','Highlight daily specials and signature dishes']},
+ {c:'Phase 1 · Arrival & Order Taking',b:'Step 3',t:'Order Taking',s:'Accuracy starts with listening.',items:['Listen attentively; never interrupt','Record dietary preferences and allergies','Repeat the complete order clearly'],quote:'Always repeat the order back clearly to guarantee 100% service accuracy.'},
+ {c:'Phase 2 · Delivery & Food Service',b:'Step 4',t:'Complimentary Starters',s:'Keep the wait comfortable.',items:['Prompt bread / amuse-bouche delivery','Maintain guest comfort','Inform guests of relevant ingredients']},
+ {c:'Phase 2 · Delivery & Food Service',b:'Step 5',t:'Beverage Execution',s:'Details guests notice.',items:['Prompt beverage delivery','Proper serving temperature','Spotless glassware','Serve beverages from the right','Announce beverage names']},
+ {c:'Phase 2 · Delivery & Food Service',b:'Step 6',t:'Food Service & Follow-Up',s:'Present, announce, observe, check.',items:['Present dishes and serve from the appropriate side','Announce dish names','Observe guest reaction','Conduct a 2-minute satisfaction check'],quote:'Is everything prepared to your satisfaction?'},
+ {c:'Phase 3 · Table Maintenance & Setting',b:'Step 7',t:'Active Table Maintenance',s:'Stay present without hovering.',items:['Clear discreetly, from the right','Refill water proactively','Remove empty bottles and unneeded glassware','Keep dining surfaces clean']},
+ {c:'Phase 3 · Table Maintenance & Setting',b:'Step 8',t:'Mise en Place',s:'Reset the table for every course.',sections:[{h:'Cutlery',p:'Parallel silverware about one inch from the table edge; correct fork and knife orientation.'},{h:'Glassware & linen',p:'Water glass placed correctly; linen clean and wrinkle-free.'},{h:'Between courses',p:'Course-specific adjustments, full reset and crumbing.'}]},
+ {c:'Phase 4 · Settlement & Farewell',b:'Step 9',t:'Guest Engagement',s:'Turn satisfaction into loyalty.',items:['Warm satisfaction check','Proactively invite feedback','Mention loyalty-program or promotions']},
+ {c:'Phase 4 · Settlement & Farewell',b:'Step 10',t:'Billing & Settlement',s:'Discreet, accurate, prompt.',items:['Present the bill discreetly','Address the bill to the host','Clearly repeat the total','Process cards appropriately','Confirm cash change promptly']},
+ {c:'Phase 4 · Settlement & Farewell',b:'Step 11',t:'Warm Farewell',s:'The last impression is the lasting one.',items:['Sincere gratitude','Help with belongings','Warmly invite guests to return','Make the departure memorable']},
+ {c:'Recap',b:'Golden Rules',t:'Four Stages, One Standard',s:'What to carry onto the floor.',stages:['Arrive: greet within 30 seconds','Order: repeat it back, every time','Serve: right side, announce, check at 2 minutes','Close: discreet bill, sincere farewell']},
+ {c:'Check',b:'Quiz',t:'Test Your Knowledge',s:'Twelve questions across three checkpoints.',quizPrompt:'Answer each question for instant feedback.',a:{label:'Open checkpoints',tab:'quiz'}},
+ {c:'Practice',b:'Lab',t:'Practice on the Virtual Floor',s:'Make decisions, rehearse phrasing, sort the sequence.',quizPrompt:'Three modules await in the Practice Lab.',a:{label:'Open practice lab',tab:'lab'}}
+];
+
+/* ===== 4. QUIZ DATA ===== [question, options, correctIndex, explanation] ===== */
+const quizData={
+ checkpoint1:{title:'Checkpoint 1',topic:'Arrival & Order Taking · Steps 1–3',q:[
+  ['How soon should arriving guests be acknowledged?',['Within 30 seconds','Within 2 minutes','Once seated','After the host finishes'],0,'Acknowledge arriving guests within 30 seconds.'],
+  ['From which side are open menus presented?',['Left','Right','Either','Behind the guest'],1,'Open menus are presented from the right.'],
+  ['When should fresh water be offered and poured?',['After ordering','With the main course','Immediately','On request only'],2,'Water is offered and poured immediately after seating.'],
+  ['What must happen to allergy and dietary details?',['Memorize them','Record them and repeat the order back','Tell the guest to inform the kitchen','Ignore if the guest seems healthy'],1,'Record allergies and repeat the full order back for 100% accuracy.']]},
+ checkpoint2:{title:'Checkpoint 2',topic:'Delivery & Food Service · Steps 4–6',q:[
+  ['When should complimentary bread or amuse-bouche arrive?',['Promptly after ordering','With the bill','After mains','Only if asked'],0,'Starters arrive promptly to keep guests comfortable.'],
+  ['Beverage standard?',['Any glass is fine','Proper temperature and spotless glassware','Serve from the left','Skip naming drinks'],1,'Correct temperature and spotless glassware, served from the right and announced.'],
+  ['Why check glassware before serving?',['Speed','Cleanliness is part of the product','Habit only','Managers require it'],1,'Spotless glassware is a visible quality signal.'],
+  ['When is the satisfaction check after food service?',['Never','After 2 minutes','After dessert','When the guest waves'],1,'Check back about 2 minutes after serving.']]},
+ checkpoint3:{title:'Checkpoint 3',topic:'Table Maintenance, Mise en Place & Settlement',q:[
+  ['Plates and used glassware are cleared from…',['The left','The right','Wherever convenient','The center'],1,'Clear discreetly from the right.'],
+  ['Water refills should be…',['Requested by guests','Proactive','Only at the start','Self-service'],1,'Refill water proactively.'],
+  ['Silverware is aligned…',['Parallel, about one inch from the table edge','Stacked on the plate','Randomly','Against the glass'],0,'Parallel and about one inch from the edge.'],
+  ['How is the bill presented?',['Announced loudly','Discreetly, addressed to the host','Left on the floor','To the youngest guest'],1,'Present discreetly and address it to the host; repeat the total clearly.']]}
+};
+
+/* ===== 5. SIMULATION DATA ===== [text, delta, feedback] ===== */
+const simulationStages=[
+ {name:'Arrival',situation:'A couple arrives during a rush. You are carrying plates.',choices:[['Smile, make eye contact and say "Welcome, I\'ll be right with you."',0,'Acknowledged within seconds. Guests feel seen.'],['Finish your delivery first, then greet them.',-15,'Waiting without acknowledgment feels like neglect.'],['Point toward the host stand without speaking.',-25,'Cold and dismissive.']]},
+ {name:'Allergy Order',situation:'A guest mentions a nut allergy while ordering.',choices:[['Record it, repeat the full order back and flag the kitchen.',0,'Exactly the standard.'],['Nod and trust you will remember.',-30,'Unrecorded allergies are a safety risk.'],['Say "The kitchen usually handles that."',-20,'Vague reassurance is not accuracy.']]},
+ {name:'Delivery',situation:'A dish arrives and you notice a smudged glass at the table.',choices:[['Discreetly replace the glass, then announce the dish.',0,'Quality fixed before the guest has to ask.'],['Serve and hope nobody notices.',-15,'Details are noticed.'],['Ask the guest to hand it back.',-20,'Shifts the work to the guest.']]},
+ {name:'Table Care',situation:'Plates are finished and the water pitcher is nearly empty.',choices:[['Clear from the right and refill proactively.',0,'Seamless maintenance.'],['Wait to be asked.',-10,'Reactive service.'],['Clear from the left, reaching across.',-15,'Breaks the clearing standard.']]},
+ {name:'Settlement',situation:'The table signals for the bill; one guest is clearly the host.',choices:[['Present discreetly to the host and repeat the total.',0,'Smooth, accurate settlement.'],['Announce the total across the table.',-20,'Breaks discretion.'],['Hand the bill to whoever is closest.',-10,'Ignores the host.']]}
+];
+
+/* ===== 6. PHRASING DATA ===== */
+const phrasingChallenges=[
+ {situation:'A guest asks if the soup contains dairy and you are unsure.',options:[['I think so, maybe? I don\'t know.',false,'Guessing is unsafe.'],['Let me confirm with the chef so I can give you an accurate answer.',true,'Honest, proactive and safe.'],['Just tell the kitchen when you order.',false,'Pushes the work to the guest.']]},
+ {situation:'A dish was served cold.',options:[['It\'s supposed to be like that.',false,'Dismissive.'],['That\'s not the standard we want. I\'ll have a fresh one prepared right away.',true,'Owns the problem and offers a fix.'],['Why didn\'t you say earlier?',false,'Blames the guest.']]},
+ {situation:'You are presenting the bill to the host.',options:[['Here you go, guys.',false,'Too casual and unaddressed.'],['Whenever.',false,'Unprofessional.'],['Thank you for dining with us. The total is $142; may I take your card whenever you are ready?',true,'Courteous, clear total, no pressure.']]}
+];
+
+/* ===== 7. SEQUENCE DATA ===== */
+const correctSequence=['Guest Arrival','Greeting / Seating','Menu / Water','Order Taking','Starters','Beverage Execution','Food Service / 2-Minute Check','Table Maintenance','Mise en Place','Billing / Settlement','Farewell'];
+
+/* ===== 8. LOCAL STORAGE ===== */
+let saveTimer=null;
+function setSaveStatus(t){const e=document.getElementById('saveStatus');if(e)e.textContent=t}
+function saveState(){setSaveStatus('Saving...');clearTimeout(saveTimer);
+ try{localStorage.setItem(CONFIG.storageKey,JSON.stringify(appState));saveTimer=setTimeout(()=>setSaveStatus('Saved just now'),250)}
+ catch(e){setSaveStatus('Not saved (storage unavailable)')}}
+function loadState(){try{const raw=localStorage.getItem(CONFIG.storageKey);if(!raw)return;const s=JSON.parse(raw);
+ if(!s||typeof s!=='object')return;const f=freshState();
+ appState={...f,...s,simulation:{...f.simulation,...s.simulation},phrasing:{...f.phrasing,...s.phrasing},sequence:{...f.sequence,...s.sequence},participant:{...f.participant,...s.participant}};
+ appState.currentSlide=Math.min(Math.max(+appState.currentSlide||1,1),CONFIG.totalSlides);
+ if(!['present','quiz','lab','review'].includes(appState.tab))appState.tab='present';
+}catch(e){appState=freshState()}}
+function resetState(){appState=freshState();try{localStorage.removeItem(CONFIG.storageKey)}catch(e){}}
+
+/* ===== utilities ===== */
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const $=id=>document.getElementById(id);
+
+/* ===== 9. PRESENTATION RENDERING ===== */
+function slideBody(s){let h='';
+ if(s.quote)h+=`<blockquote class="serif text-xl md:text-2xl italic mt-5" style="color:#ffc9a8">“${esc(s.quote)}”</blockquote>`;
+ if(s.pillars)h+=`<div class="mt-5 flex flex-wrap gap-2">${s.pillars.map(p=>`<span class="px-4 py-2 rounded-full border border-white/30">${esc(p)}</span>`).join('')}</div>`;
+ if(s.roadmap)h+=`<ol class="mt-5 space-y-3">${s.roadmap.map((r,i)=>`<li class="p-3 rounded-xl bg-white/10"><b style="color:var(--or)">${i+1}.</b> ${esc(r)}</li>`).join('')}</ol>`;
+ if(s.items)h+=`<ul class="mt-5 space-y-2">${s.items.map(i=>`<li class="flex gap-3"><span style="color:var(--or)" aria-hidden="true">●</span><span>${esc(i)}</span></li>`).join('')}</ul>`;
+ if(s.sections)h+=`<div class="mt-5 grid md:grid-cols-3 gap-3">${s.sections.map(x=>`<div class="p-4 rounded-xl bg-white/10"><b style="color:var(--or)">${esc(x.h)}</b><p class="text-sm mt-1" style="color:#b8dde1">${esc(x.p)}</p></div>`).join('')}</div>`;
+ if(s.stages)h+=`<div class="mt-5 grid sm:grid-cols-2 gap-3">${s.stages.map((x,i)=>`<div class="p-4 rounded-xl bg-white/10"><span style="color:var(--or)">Stage ${i+1}</span><br>${esc(x)}</div>`).join('')}</div>`;
+ if(s.quizPrompt)h+=`<p class="mt-5 text-lg" style="color:#b8dde1">${esc(s.quizPrompt)}</p>`;
+ if(s.a)h+=`<button class="btn btn-or mt-6" onclick="slideAction(${s.a.go||0},'${s.a.tab||''}')">${esc(s.a.label)}</button>`;
+ return h}
+function slideAction(go,tab){if(tab)switchTab(tab);else if(go)goToSlide(go)}
+function renderPresentation(){const i=appState.currentSlide,s=slideDeck[i-1];if(!s)return '';
+ const nav=slideDeck.map((x,k)=>`<button class="btn w-full text-left text-sm ${k+1===i?'btn-te':''}" ${k+1===i?'aria-current="true"':''} onclick="goToSlide(${k+1})">${k+1}. ${esc(x.t)}</button>`).join('');
+ return `<div class="grid lg:grid-cols-3 gap-5">
+ <div class="lg:col-span-2"><div class="canvas p-6 md:p-10 min-h-[420px] relative">
+  <div class="flex justify-between items-start gap-3"><div><div class="text-sm" style="color:#7fc7d0">${esc(s.c)}</div><span class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold" style="background:var(--or)">${esc(s.b||s.t)}</span></div>
+  <span class="w-12 h-12 rounded-full border border-white/40 flex items-center justify-center font-bold" aria-label="Slide ${i}">${i}</span></div>
+  <h2 class="serif text-3xl md:text-5xl font-bold mt-5">${esc(s.t)}</h2><p class="mt-2 text-lg" style="color:#b8dde1">${esc(s.s)}</p>${slideBody(s)}</div>
+  <div class="flex flex-wrap gap-2 mt-4"><button class="btn" onclick="goToSlide(1)" ${i===1?'disabled':''}>First Slide</button><button class="btn" onclick="goToSlide(${i-1})" ${i===1?'disabled':''}>Previous</button><button class="btn btn-or" onclick="goToSlide(${i+1})" ${i===CONFIG.totalSlides?'disabled':''}>Next</button></div></div>
+ <aside class="card p-4"><div class="flex justify-between items-center"><b>${slideDeck.length} slides</b>
+  <label class="text-sm flex items-center gap-2"><input type="checkbox" ${appState.follow?'checked':''} onchange="appState.follow=this.checked;saveState()"> Follow Facilitator</label></div>
+  <div class="flex gap-2 mt-3"><button class="btn text-sm" onclick="switchTab('quiz')">Mini Quizzes</button><button class="btn text-sm" onclick="switchTab('lab')">Practice Lab</button></div>
+  <nav class="mt-3 space-y-1 max-h-96 overflow-y-auto" aria-label="Slide selector">${nav}</nav></aside></div>`}
+function goToSlide(n){n=Math.min(Math.max(n,1),CONFIG.totalSlides);appState.currentSlide=n;saveState();render()}
+
+/* ===== 10. TAB NAVIGATION ===== */
+const TABS=[['present','Follow Presentation'],['quiz','Knowledge Checkpoints'],['lab','Interactive Practice Lab'],['review','Review & Submit']];
+function switchTab(t){appState.tab=t;saveState();render();window.scrollTo({top:0,behavior:'smooth'})}
+function renderTabs(){$('tabs').innerHTML=TABS.map(([k,l])=>`<button role="tab" class="tab" aria-selected="${appState.tab===k}" onclick="switchTab('${k}')">${l}</button>`).join('')}
+
+/* ===== 11. QUIZ ===== */
+function quizTotal(){return Object.values(appState.quizScores).reduce((a,b)=>a+b,0)}
+function answeredCount(){return Object.keys(appState.quizAnswers).length}
+function recomputeScores(){Object.keys(quizData).forEach(k=>{appState.quizScores[k]=quizData[k].q.reduce((n,q,i)=>n+(appState.quizAnswers[k+'-'+i]===q[2]?1:0),0)})}
+function renderQuiz(){recomputeScores();
+ return `<div class="space-y-6">`+Object.entries(quizData).map(([k,c])=>`<section class="card p-5"><div class="flex justify-between flex-wrap gap-2"><div><h2 class="serif text-2xl font-bold">${esc(c.title)}</h2><p class="text-sm text-gray-600">${esc(c.topic)}</p></div><b style="color:var(--te)">${appState.quizScores[k]||0}/4 Correct</b></div>`+
+ c.q.map((q,i)=>{const id=k+'-'+i,ans=appState.quizAnswers[id],done=ans!==undefined;
+  return `<fieldset class="mt-5"><legend class="font-semibold">${i+1}. ${esc(q[0])}</legend>`+q[1].map((o,j)=>{const cls=done?(j===q[2]?'ok':(j===ans?'bad':'')):'';
+   const mark=done?(j===q[2]?' ✓ Correct':(j===ans?' ✗ Incorrect':'')):'';
+   return `<button class="opt ${cls}" ${done?'disabled':''} onclick="answerQuiz('${k}',${i},${j})">${esc(o)}<b>${mark}</b></button>`}).join('')+
+   (done?`<p class="mt-2 text-sm" role="status"><b>${ans===q[2]?'Correct.':'Not quite.'}</b> ${esc(q[3])}</p>`:'')+`</fieldset>`}).join('')+`</section>`).join('')+
+ `<div class="card p-5 text-center"><span class="text-3xl serif font-bold">${quizTotal()} / 12</span><p class="text-sm text-gray-600">${answeredCount()}/12 answered</p></div></div>`}
+function answerQuiz(k,i,j){const id=k+'-'+i;if(appState.quizAnswers[id]!==undefined||!quizData[k]?.q[i])return;
+ appState.quizAnswers[id]=j;recomputeScores();saveState();
+ if(quizData[k].q.every((_,n)=>appState.quizAnswers[k+'-'+n]!==undefined))toast(quizData[k].title+' completed.');
+ render()}
+
+/* ===== 12. SIMULATION ===== */
+function renderSimulation(){const sm=appState.simulation,st=simulationStages[sm.currentStage],done=sm.completedStages.includes(sm.currentStage),ch=sm.choices[sm.currentStage];
+ const tabs=simulationStages.map((x,i)=>`<button class="tab ${i===sm.currentStage?'':'opacity-80'}" aria-selected="${i===sm.currentStage}" onclick="goStage(${i})">${i+1}. ${esc(x.name)}${sm.completedStages.includes(i)?' ✓':''}</button>`).join('');
+ return `<section class="card p-5"><h2 class="serif text-2xl font-bold">The “Virtual Shift” Branching Scenario</h2>
+ <div class="mt-3"><div class="flex justify-between text-sm"><b>Guest Delight Meter</b><span id="gd">${sm.guestDelight}%</span></div><div class="bar" role="progressbar" aria-valuenow="${sm.guestDelight}" aria-valuemin="0" aria-valuemax="100"><i style="width:${sm.guestDelight}%"></i></div></div>
+ <div class="strip flex gap-2 mt-4">${tabs}</div>
+ <p class="mt-4 font-semibold">${esc(st.situation)}</p>
+ ${st.choices.map((c,i)=>`<button class="opt ${done?(i===ch?(c[1]===0?'ok':'bad'):''):''}" ${done?'disabled':''} onclick="chooseSim(${i})">${esc(c[0])}${done&&i===ch?`<b> — ${c[1]===0?'Strong choice':'Cost '+c[1]+'%'}</b>`:''}</button>`).join('')}
+ ${done?`<p class="mt-3 text-sm" role="status">${esc(st.choices[ch][2])}</p>`:''}
+ <p class="mt-3 text-sm text-gray-600">${sm.completedStages.length}/5 stages completed${sm.completedStages.length===5?' · Final Guest Delight: '+sm.guestDelight+'%':''}</p></section>`}
+function goStage(i){appState.simulation.currentStage=i;saveState();render()}
+function chooseSim(i){const sm=appState.simulation,n=sm.currentStage;if(sm.completedStages.includes(n))return;
+ const c=simulationStages[n].choices[i];sm.choices[n]=i;sm.completedStages.push(n);
+ sm.guestDelight=Math.max(0,Math.min(100,sm.guestDelight+c[1]));saveState();
+ toast(c[1]===0?'Guest delight preserved.':'Guest delight '+c[1]+'%');render()}
+
+/* ===== 13. PHRASING ===== */
+function renderPhrasing(){const p=appState.phrasing;
+ return `<section class="card p-5"><div class="flex justify-between flex-wrap"><h2 class="serif text-2xl font-bold">Professional Hospitality Phrasing Lab</h2><b style="color:var(--te)">${p.completed.length}/3 Completed</b></div>`+
+ phrasingChallenges.map((c,i)=>{const pick=p.picks[i],done=pick!==undefined;
+  return `<fieldset class="mt-5"><legend class="font-semibold">${i+1}. ${esc(c.situation)}</legend>`+c[`options`].map((o,j)=>`<button class="opt ${done&&j===pick?(o[1]?'ok':'bad'):''}" ${p.completed.includes(i)?'disabled':''} onclick="choosePhrase(${i},${j})">“${esc(o[0])}”${done&&j===pick?`<b>${o[1]?' ✓ Preferred':' ✗ Try again'}</b>`:''}</button>`).join('')+
+  (done?`<p class="mt-2 text-sm" role="status">${esc(c.options[pick][2])}</p>`:'')+`</fieldset>`}).join('')+`</section>`}
+function choosePhrase(i,j){const p=appState.phrasing;if(p.completed.includes(i))return;p.picks[i]=j;
+ if(phrasingChallenges[i].options[j][1]){p.completed.push(i);toast('Phrase mastered.')}saveState();render()}
+
+/* ===== 14. SEQUENCE SORTER ===== */
+function shuffleSequence(){const o=correctSequence.map((_,i)=>i);
+ do{for(let i=o.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[o[i],o[j]]=[o[j],o[i]]}}while(o.every((v,i)=>v===i));
+ appState.sequence={order:o,completed:false,checked:null};saveState();render()}
+function ensureSequence(){const o=appState.sequence.order;if(!Array.isArray(o)||o.length!==11||new Set(o).size!==11){const s=appState.sequence;s.order=correctSequence.map((_,i)=>i).reverse();s.completed=false;s.checked=null}}
+function moveSeq(i,d){const o=appState.sequence.order,j=i+d;if(j<0||j>=o.length)return;[o[i],o[j]]=[o[j],o[i]];appState.sequence.checked=null;appState.sequence.completed=false;saveState();render();
+ const b=document.querySelector(`[data-pos="${j}"] .${d<0?'up':'dn'}`);if(b)b.focus()}
+function validateSequence(){const o=appState.sequence.order,wrong=o.map((v,i)=>v===i?-1:i).filter(i=>i>=0);
+ appState.sequence.checked=wrong;appState.sequence.completed=wrong.length===0;saveState();
+ toast(wrong.length?'Sequence validated: '+wrong.length+' out of place.':'Sequence validated: perfect order.');render()}
+function renderSorter(){ensureSequence();const s=appState.sequence;
+ return `<section class="card p-5"><h2 class="serif text-2xl font-bold">Service Sequence Sorter</h2><p class="text-sm text-gray-600">Drag items, or use the arrow buttons, to put the eleven standards in order.</p>
+ <ol id="seqList" class="mt-3">${s.order.map((v,i)=>{const bad=s.checked&&s.checked.includes(i),good=s.checked&&!bad;
+  return `<li class="seq ${good?'ok':''} ${bad?'bad':''}" draggable="true" data-pos="${i}" ondragstart="dragStart(event,${i})" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="dropSeq(event,${i})">
+  <span class="font-bold w-6">${i+1}</span><span class="flex-1">${esc(correctSequence[v])}${good?' ✓':''}${bad?' — not here':''}</span>
+  <button class="btn up !px-3" aria-label="Move ${esc(correctSequence[v])} up" onclick="moveSeq(${i},-1)" ${i===0?'disabled':''}>▲</button>
+  <button class="btn dn !px-3" aria-label="Move ${esc(correctSequence[v])} down" onclick="moveSeq(${i},1)" ${i===10?'disabled':''}>▼</button></li>`}).join('')}</ol>
+ <div class="flex flex-wrap gap-2 mt-4"><button class="btn" onclick="shuffleSequence()">Shuffle Order</button><button class="btn btn-or" onclick="validateSequence()">Validate Sequence</button></div>
+ <p class="mt-3 text-sm" role="status">${s.completed?'Correct order. Sequence complete.':(s.checked?s.checked.length+' step(s) are out of place. Re-think the table journey and try again.':'')}</p></section>`}
+let dragFrom=null;
+function dragStart(e,i){dragFrom=i;e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain',String(i))}catch(x){}}
+function dropSeq(e,i){e.preventDefault();if(dragFrom===null||dragFrom===i)return;const o=appState.sequence.order,[m]=o.splice(dragFrom,1);o.splice(i,0,m);dragFrom=null;
+ appState.sequence.checked=null;appState.sequence.completed=false;saveState();render()}
+
+function renderLab(){return `<div class="space-y-6">${renderSimulation()}${renderPhrasing()}${renderSorter()}
+ <section class="card p-5"><label for="plan" class="serif text-xl font-bold block">Personal Service Action Plan</label>
+ <p class="text-sm text-gray-600 mt-1">What are 2 specific sequence habits you commit to executing on your next restaurant shift?</p>
+ <textarea id="plan" rows="4" class="w-full mt-3 p-3 border rounded-xl" style="border-color:var(--bd)" placeholder="1. Conduct verbatim order repeat-backs for 100% of allergy requests.&#10;2. Clear empty plates and used glassware strictly from the right." oninput="appState.participant.actionPlan=this.value;saveState()">${esc(appState.participant.actionPlan)}</textarea></section></div>`}
+
+/* ===== 15. PROGRESS ===== */
+function practiceDone(){return(appState.simulation.completedStages.length===5?1:0)+(appState.phrasing.completed.length===3?1:0)+(appState.sequence.completed?1:0)}
+function metaDone(){return(appState.participant.name.trim()?1:0)+(appState.participant.outlet.trim()?1:0)}
+function missingItems(){const m=[];if(!appState.participant.name.trim())m.push('Participant name');if(!appState.participant.outlet.trim())m.push('Outlet / location');
+ if(answeredCount()<12)m.push('All 12 quiz questions ('+answeredCount()+'/12)');if(practiceDone()<3)m.push('All 3 practice modules ('+practiceDone()+'/3)');return m}
+function updateHeader(){$('hSlide').textContent=appState.currentSlide;$('hQuiz').textContent=quizTotal()+'/12'}
+
+/* ===== REVIEW ===== */
+function renderReview(){const p=appState.participant,sm=appState.simulation;
+ const cards=[['Quiz Score',quizTotal()+' / 12'],['Guest Delight',sm.guestDelight+'%'],['Practice Labs',practiceDone()+' / 3'],['Required Meta',metaDone()+' / 2']];
+ return `<section class="card p-5"><h2 class="serif text-2xl font-bold">Review &amp; Submit</h2>
+ <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">${cards.map(c=>`<div class="p-4 rounded-2xl text-center" style="background:var(--sur)"><div class="text-xs text-gray-600">${c[0]}</div><div class="serif text-2xl font-bold" style="color:var(--ted)">${c[1]}</div></div>`).join('')}</div>
+ <div class="grid md:grid-cols-2 gap-4 mt-5"><div><label for="pName" class="text-sm font-semibold">Participant Full Name</label><input id="pName" class="w-full mt-1 p-3 border rounded-xl" style="border-color:var(--bd)" autocomplete="name" value="${esc(p.name)}" oninput="appState.participant.name=this.value;saveState();updateMeta()"></div>
+ <div><label for="pOutlet" class="text-sm font-semibold">Outlet / Location / Property</label><input id="pOutlet" class="w-full mt-1 p-3 border rounded-xl" style="border-color:var(--bd)" value="${esc(p.outlet)}" oninput="appState.participant.outlet=this.value;saveState();updateMeta()"></div></div>
+ <div class="flex flex-wrap gap-3 mt-5"><button class="btn" onclick="downloadRecordPDF()">Download Record (.PDF)</button><button class="btn btn-or" onclick="submitTrainingLog()">Submit Training Log</button></div>
+ ${p&&appState.submitted?`<p class="mt-3 text-sm" role="status">${appState.submittedRemote?'Submitted to the tracking sheet':'Recorded on this device only (nothing sent; keep the PDF record for your manager)'} at ${esc(appState.submitted)}.</p>`:''}</section>`}
+function updateMeta(){/* refresh only the meta card to keep input focus */const cs=document.querySelectorAll('#view .grid-cols-2 > div');if(cs[3])cs[3].querySelector('.serif').textContent=metaDone()+' / 2'}
+
+/* ===== 16. PDF ===== */
+function buildPdfNode(){const p=appState.participant,d=document.createElement('div');
+ d.style.cssText='font-family:Arial,sans-serif;color:#1d2b2e;padding:32px;width:700px;background:#fff';
+ const row=(a,b)=>`<tr><td style="padding:8px;border-bottom:1px solid #e6ded4;width:40%"><b>${esc(a)}</b></td><td style="padding:8px;border-bottom:1px solid #e6ded4">${esc(b)}</td></tr>`;
+ d.innerHTML=`<div style="border-bottom:4px solid #f26822;padding-bottom:12px"><div style="font-family:Georgia,serif;font-size:28px;font-weight:bold;color:#0c353b">PARADIGMA</div><div style="color:#1a7b88;font-size:12px">Customer Experience Solutions · paraintl.com</div></div>
+ <h2 style="font-family:Georgia,serif;color:#0c353b;margin:20px 0 4px">Service Sequence Companion — Training Completion Record</h2><div style="font-size:12px;color:#555">Generated ${esc(new Date().toLocaleString())}</div>
+ <table style="width:100%;border-collapse:collapse;margin-top:16px;font-size:13px">${row('Participant',p.name||'—')}${row('Outlet / Property',p.outlet||'—')}${row('Quiz Score',quizTotal()+' / 12')}${row('Guest Delight',appState.simulation.guestDelight+'%')}
+ ${row('Virtual Shift',appState.simulation.completedStages.length+'/5 stages')}${row('Phrasing Lab',appState.phrasing.completed.length+'/3 completed')}${row('Sequence Sorter',appState.sequence.completed?'Completed':'Not completed')}${row('Status',missingItems().length?'Incomplete':'All requirements complete')}</table>
+ <h3 style="color:#0c353b;margin-top:20px">Personal Service Action Plan</h3><div style="white-space:pre-wrap;font-size:13px;border:1px solid #e6ded4;padding:12px;border-radius:8px">${esc(p.actionPlan||'No action plan entered.')}</div>`;
+ return d}
+function downloadRecordPDF(){try{if(typeof html2pdf==='undefined')throw new Error('html2pdf not loaded');
+ const node=buildPdfNode(),wrap=document.createElement('div');wrap.style.cssText='position:fixed;left:-9999px;top:0';wrap.appendChild(node);document.body.appendChild(wrap);
+ const name='PARADIGMA-Training-Record-'+(appState.participant.name||'participant').replace(/[^a-z0-9]+/gi,'-')+'.pdf';
+ html2pdf().set({margin:10,filename:name,html2canvas:{scale:2},jsPDF:{unit:'mm',format:'a4'}}).from(node).save()
+  .then(()=>toast('Training record generated.')).catch(()=>toast('PDF generation failed. Try printing the page instead.')).finally(()=>wrap.remove());
+ }catch(e){toast('PDF generation unavailable: '+e.message)}}
+
+/* ===== SUBMISSION (local only) ===== */
+function buildPayload(){const a=appState,q=a.quizScores;return{token:CONFIG.submitToken,participant:a.participant.name.trim(),outlet:a.participant.outlet.trim(),
+ quiz:quizTotal(),cp1:q.checkpoint1||0,cp2:q.checkpoint2||0,cp3:q.checkpoint3||0,guestDelight:a.simulation.guestDelight,shiftStages:a.simulation.completedStages.length,
+ phrasing:a.phrasing.completed.length,sorter:!!a.sequence.completed,practice:practiceDone(),actionPlan:a.participant.actionPlan,status:missingItems().length?'Incomplete':'Complete',deviceTime:new Date().toISOString()}}
+function submitToServer(payload){if(!CONFIG.submitUrl)return Promise.resolve({local:true});
+ /* text/plain avoids a CORS preflight, which Apps Script cannot answer */
+ return fetch(CONFIG.submitUrl,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)})
+  .then(r=>r.json()).then(j=>{if(!j||!j.ok)throw new Error((j&&j.error)||'Rejected by sheet');return{local:false}})}
+function submitTrainingLog(){const m=missingItems();
+ if(m.length){showModal('Not ready to submit','<p>Please complete:</p><ul class="list-disc pl-5 mt-2">'+m.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul>');return}
+ submitToServer(buildPayload()).then(res=>{
+  appState.submitted=new Date().toLocaleString();appState.submittedRemote=!res.local;saveState();render();
+  showModal(res.local?'Recorded on this device':'Training log submitted',res.local?'<p>No tracking sheet is connected, so nothing was transmitted. Your log is saved locally. Download the PDF record and share it with your manager.</p>':'<p>Your training log was received by the tracking sheet. You can still download the PDF record for your files.</p>')
+ }).catch(err=>showModal('Could not reach the tracking sheet','<p>Your progress is still saved on this device, but the log was <b>not</b> confirmed as received. Check your connection and try again, or download the PDF record for your manager.</p>'))}
+
+/* ===== 17. MANAGER RESET ===== */
+function promptManagerReset(){$('mgrPass').value='';$('mgrErr').textContent='';$('mgrModal').classList.add('open');$('mgrPass').focus()}
+function closeManagerModal(){$('mgrModal').classList.remove('open')}
+function verifyAndExecuteManagerReset(){if($('mgrPass').value!==CONFIG.managerPasscode){$('mgrErr').textContent='Incorrect passcode.';return}
+ resetState();closeManagerModal();render();toast('Training data cleared. Returned to Slide 1.')}
+
+/* ===== 18. MODAL / TOAST ===== */
+function showModal(title,body){$('imTitle').textContent=title;$('imBody').innerHTML=body;$('infoModal').classList.add('open')}
+function closeModal(){$('infoModal').classList.remove('open')}
+let toastTimer=null;
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2600)}
+
+/* ===== 19. INIT ===== */
+function render(){try{renderTabs();const v=$('view');
+ const map={present:renderPresentation,quiz:renderQuiz,lab:renderLab,review:renderReview};
+ v.innerHTML=`<div class="panel" role="tabpanel">${(map[appState.tab]||renderPresentation)()}</div>`;updateHeader()}
+ catch(e){console.error(e);$('view').innerHTML='<p class="card p-5">Something went wrong rendering this section. Reload the page.</p>'}}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeManagerModal()}
+ if(appState.tab==='present'&&!/INPUT|TEXTAREA/.test((e.target||{}).tagName||'')){if(e.key==='ArrowRight')goToSlide(appState.currentSlide+1);if(e.key==='ArrowLeft')goToSlide(appState.currentSlide-1)}});
+document.addEventListener('DOMContentLoaded',()=>{loadState();ensureSequence();if(!appState.sequence.order.length||appState.sequence.order.every((v,i)=>v===10-i))shuffleSequence();render()});
+</script>
+</body>
+</html>
