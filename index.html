@@ -84,7 +84,7 @@ body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--sand)
 <script>
 /* ===== 1. CONFIGURATION ===== */
 const CONFIG={storageKey:'paradigma_ssc_v1',managerPasscode:'paradigma-demo' /* DEMO ONLY — change per deployment; not real security */,totalSlides:16,
- submitUrl:'https://script.google.com/macros/s/AKfycbwbS1560CeCrvswDpYBx4HTLQzNElUil4vePT4rEH_nw2JuNN7U_KFvrhE9q0Lr3Yp6VQ/exec' /* Google Apps Script web app URL. Empty = local-only mode. */,
+ submitUrl:'https://script.google.com/macros/s/AKfycbz8_nDDmI0dgqvWidFnanFxi4nfXbGf7jIt6OAOgNbLguUKY78syykebzFd6ABgO1EF2w/exec' /* Google Apps Script web app URL. Empty = local-only mode. */,
  submitToken:'change-me' /* Must match TOKEN in Code.gs (default shown). Light spam filter only, not security. */};
 /* To use a backend, replace submitToServer() with a fetch() call. */
 
@@ -322,7 +322,9 @@ function submitTrainingLog(){const m=missingItems();
  submitToServer(buildPayload()).then(res=>{
   appState.submitted=new Date().toLocaleString();appState.submittedRemote=!res.local;saveState();render();
   showModal(res.local?'Recorded on this device':'Training log submitted',res.local?'<p>No tracking sheet is connected, so nothing was transmitted. Your log is saved locally. Download the PDF record and share it with your manager.</p>':'<p>Your training log was received by the tracking sheet. You can still download the PDF record for your files.</p>')
- }).catch(err=>showModal('Could not reach the tracking sheet','<p>Your progress is still saved on this device, but the log was <b>not</b> confirmed as received. Check your connection and try again, or download the PDF record for your manager.</p>'))}
+ }).catch(err=>{console.error('Submit failed',err);const msg=String(err&&err.message||err);
+  const hint=/Not authorized/i.test(msg)?'The token in index.html does not match TOKEN in Code.gs.':/setup/i.test(msg)?'Run setup() once in the Apps Script editor to create the Submissions tab.':/required/i.test(msg)?'Name and outlet are required.':/Failed to fetch|NetworkError|Load failed/i.test(msg)?'The browser was blocked from reading the reply. Check that the Apps Script deployment has "Who has access: Anyone" and that you redeployed a New version.':'Unexpected reply from the sheet.';
+  showModal('Could not reach the tracking sheet','<p>Your progress is still saved on this device, but the log was <b>not</b> confirmed as received.</p><p class="mt-2"><b>Likely cause:</b> '+esc(hint)+'</p><p class="mt-2 text-xs text-gray-500">Technical detail: '+esc(msg)+'</p>')})}
 
 /* ===== 17. MANAGER RESET ===== */
 function promptManagerReset(){$('mgrPass').value='';$('mgrErr').textContent='';$('mgrModal').classList.add('open');$('mgrPass').focus()}
